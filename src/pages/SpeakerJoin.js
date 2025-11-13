@@ -1,14 +1,18 @@
 import { useLoaderData } from "react-router-dom";
 import React, { useEffect, useRef, useState } from "react";
+import "../css/style.css";
+import JoinForm from "../components/SpeakerJoinForm.js";
+import PeerTiles from "../components/PeerTiles.js";
+import ScreenShare from "../components/ScreenShearing.js";
+import Controls from "../components/Controls.js";
+import "bootstrap-icons/font/bootstrap-icons.css";
+import MainDiv from "../components/MainDiv.js";
+
 import {
   HMSReactiveStore,
   selectPeers,
   selectIsConnectedToRoom,
-  selectIsLocalAudioEnabled,
-  selectIsLocalVideoEnabled,
-  selectIsLocalScreenShared,
   selectIsSomeoneScreenSharing,
-  selectVideoTrackByID,
   selectHMSMessages,
 } from "@100mslive/hms-video-store";
 const hmsManager = new HMSReactiveStore();
@@ -18,7 +22,8 @@ const hmsActions = hmsManager.getActions();
 
 async function getSpeakerDetail(s_id) {
   try {
-    const response = await fetch(`${process.env.REACT_APP_API_URL}/getSpeaker`,
+    const response = await fetch(
+      `${process.env.REACT_APP_API_URL}/getSpeaker`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -32,7 +37,6 @@ async function getSpeakerDetail(s_id) {
 
     // Parse JSON response
     const data = await response.json();
-    console.log("Response from server:", data);
     return data;
   } catch (error) {
     console.error("Error posting data:", error);
@@ -44,13 +48,8 @@ function SpeakerJoin() {
   const [speakerDetails, setSpeakerDetails] = useState(null);
   const [connected, setConnected] = useState(false);
   const [peers, setPeers] = useState([]);
-  const [audioEnabled, setAudioEnabled] = useState(false);
-  const [videoEnabled, setVideoEnabled] = useState(false);
-  const [isScreenSharing, setIsScreenSharing] = useState(false);
   const [someoneSharing, setSomeoneSharing] = useState(false);
   const [messages, setMessages] = useState([]);
-  const [roomCode, setRoomCode] = useState("");
-  const [userName, setUserName] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const mainRef = useRef();
@@ -62,18 +61,7 @@ function SpeakerJoin() {
       setConnected,
       selectIsConnectedToRoom
     );
-    const unsubAudio = hmsStore.subscribe(
-      setAudioEnabled,
-      selectIsLocalAudioEnabled
-    );
-    const unsubVideo = hmsStore.subscribe(
-      setVideoEnabled,
-      selectIsLocalVideoEnabled
-    );
-    const unsubScreen = hmsStore.subscribe(
-      setIsScreenSharing,
-      selectIsLocalScreenShared
-    );
+
     const unsubSomeone = hmsStore.subscribe(
       setSomeoneSharing,
       selectIsSomeoneScreenSharing
@@ -83,72 +71,14 @@ function SpeakerJoin() {
     return () => {
       unsubPeers();
       unsubConnection();
-      unsubAudio();
-      unsubVideo();
-      unsubScreen();
       unsubSomeone();
       unsubMessages();
     };
   }, []);
 
-  // Join Room
-  const joinRoom = async () => {
-    const authToken = await hmsActions.getAuthTokenByRoomCode({ roomCode });
-    await hmsActions.join({ userName, authToken });
-  };
-
-  // Leave Room
   const leaveRoom = async () => {
     await hmsActions.leave();
     setPeers([]);
-  };
-
-  // Toggle audio/video
-  const toggleAudio = async () => {
-    await hmsActions.setLocalAudioEnabled(!audioEnabled);
-  };
-
-  const toggleVideo = async () => {
-    await hmsActions.setLocalVideoEnabled(!videoEnabled);
-  };
-
-  // Screen sharing
-  const toggleScreenShare = async () => {
-    if (isScreenSharing) {
-      await hmsActions.setScreenShareEnabled(false);
-    } else {
-      await hmsActions.setScreenShareEnabled(true);
-    }
-  };
-
-  // Render each peer tile
-  const PeerTile = ({ peer }) => {
-    const videoRef = useRef();
-
-    useEffect(() => {
-      const unsubTrack = hmsStore.subscribe((track) => {
-        if (track && track.enabled) {
-          hmsActions.attachVideo(track.id, videoRef.current);
-        } else if (track) {
-          hmsActions.detachVideo(track.id, videoRef.current);
-        }
-      }, selectVideoTrackByID(peer.videoTrack));
-
-      return () => unsubTrack();
-    }, [peer.videoTrack]);
-
-    return (
-      <div className="peer-tile">
-        <video
-          ref={videoRef}
-          autoPlay
-          muted={peer.isLocal}
-          playsInline
-          className="peer-video"
-        />
-        <div className="peer-name">{peer.name}</div>
-      </div>
-    );
   };
 
   // Render messages
@@ -197,149 +127,38 @@ function SpeakerJoin() {
   }, [s_id]);
 
   return (
-    <div className="hms-container">
+    <div className="speaker-page">
       {loading ? (
         <p>Loading speaker details...</p>
       ) : error ? (
         <p style={{ color: "red" }}>{error}</p>
       ) : !speakerDetails?.success ? (
         <p>No speaker found.</p>
+      ) : !connected ? (
+        <JoinForm spekerDetails={speakerDetails} hmsActions={hmsActions} />
       ) : (
-        <div className="speaker-details">
-          {!connected ? (
-            <div className="join-form">
+        <div className="speaker-conference">
+          <PeerTiles hmsActions={hmsActions} hmsStore={hmsStore} />
+          <MainDiv hmsStore={hmsStore} hmsActions={hmsActions} />
+          <Controls hmsStore={hmsStore} hmsActions={hmsActions} />
+
+          {/* <div className="chat">
+            <div className="messages">{renderMessages}</div>
+            <div className="chat-input">
               <input
                 type="text"
-                placeholder="Room Code"
-                value={roomCode || speakerDetails?.data?.room?.stream_key || ""}
-                onChange={(e) => setRoomCode(e.target.value)}
+                placeholder="Type message..."
+                value={chatMessage}
+                onChange={(e) => setChatMessage(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && sendMessage()}
               />
-              <input
-                type="text"
-                placeholder="Your Name"
-                value={userName || speakerDetails?.data?.name || ""}
-                onChange={(e) => setUserName(e.target.value)}
-              />
-              <button onClick={joinRoom}>Join</button>
+              <button onClick={sendMessage}>Send</button>
             </div>
-          ) : (
-            <div className="conference">
-              <div className="controls">
-                <button onClick={toggleAudio}>
-                  {audioEnabled ? "Mute Audio" : "Unmute Audio"}
-                </button>
-                <button onClick={toggleVideo}>
-                  {videoEnabled ? "Stop Video" : "Start Video"}
-                </button>
-                <button onClick={toggleScreenShare}>
-                  {isScreenSharing ? "Stop Sharing" : "Share Screen"}
-                </button>
-                <button onClick={leaveRoom}>Leave</button>
-              </div>
-
-              <div className="peers-container">
-                {peers.map((peer) => (
-                  <PeerTile key={peer.id} peer={peer} />
-                ))}
-              </div>
-
-              <div ref={mainRef} className="main-screen">
-                {someoneSharing && !isScreenSharing && (
-                  <p>Someone is sharing screen</p>
-                )}
-              </div>
-
-              <div className="chat">
-                <div className="messages">{renderMessages}</div>
-                <div className="chat-input">
-                  <input
-                    type="text"
-                    placeholder="Type message..."
-                    value={chatMessage}
-                    onChange={(e) => setChatMessage(e.target.value)}
-                    onKeyDown={(e) => e.key === "Enter" && sendMessage()}
-                  />
-                  <button onClick={sendMessage}>Send</button>
-                </div>
-              </div>
-            </div>
-          )}
+          </div> */}
         </div>
       )}
     </div>
   );
-
-  var speakerInfo = speakerDetails ? JSON.parse(speakerDetails) : {};
-  console.log(speakerDetails);
-
-  // return (
-  //   <div className="hms-container">
-  //     {speakerDetails.success ? (
-  //       <div className="speaker-details">
-  //         {!connected ? (
-  //           <div className="join-form">
-  //             <input
-  //               type="text"
-  //               placeholder="Room Code"
-  //               // value={speakerInfo.data.room.stream_key || ""}
-  //               onChange={(e) => setRoomCode(e.target.value)}
-  //             />
-  //             <input
-  //               type="text"
-  //               placeholder="Your Name"
-  //               // value={speakerInfo.data.name || ""}
-  //               onChange={(e) => setUserName(e.target.value)}
-  //             />
-  //             <button onClick={joinRoom}>Join</button>
-  //           </div>
-  //         ) : (
-  //           <div className="conference">
-  //             <div className="controls">
-  //               <button onClick={toggleAudio}>
-  //                 {audioEnabled ? "Mute Audio" : "Unmute Audio"}
-  //               </button>
-  //               <button onClick={toggleVideo}>
-  //                 {videoEnabled ? "Stop Video" : "Start Video"}
-  //               </button>
-  //               <button onClick={toggleScreenShare}>
-  //                 {isScreenSharing ? "Stop Sharing" : "Share Screen"}
-  //               </button>
-  //               <button onClick={leaveRoom}>Leave</button>
-  //             </div>
-
-  //             <div className="peers-container">
-  //               {peers.map((peer) => (
-  //                 <PeerTile key={peer.id} peer={peer} />
-  //               ))}
-  //             </div>
-
-  //             <div ref={mainRef} className="main-screen">
-  //               {someoneSharing && !isScreenSharing && (
-  //                 <p>Someone is sharing screen</p>
-  //               )}
-  //             </div>
-
-  //             <div className="chat">
-  //               <div className="messages">{renderMessages}</div>
-  //               <div className="chat-input">
-  //                 <input
-  //                   type="text"
-  //                   placeholder="Type message..."
-  //                   value={chatMessage}
-  //                   onChange={(e) => setChatMessage(e.target.value)}
-  //                   onKeyDown={(e) => e.key === "Enter" && sendMessage()}
-  //                 />
-  //                 <button onClick={sendMessage}>Send</button>
-  //               </div>
-  //             </div>
-  //           </div>
-  //         )}
-  //       </div>
-  //     ) : (
-  //       <p>Loading speaker details...</p>
-  //     )}
-  //   </div>
-  // );
 }
 
 export default SpeakerJoin;
