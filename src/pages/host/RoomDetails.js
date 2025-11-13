@@ -472,10 +472,12 @@ function RoomDetails() {
     fetchRoomDetails(roomId);
   }, [roomId]);
 
-  const stream_url = `${process.env.AAP_URL}/play-stream?p_id=${roomId}`;
+  const surl = `${process.env.AAP_URL || "http://localhost:3000"}`;
+  const stream_url = `${surl}/play-stream?p_id=${roomId}`;
+  console.log(stream_url);
+  
   // const stream_url = `http://localhost:3000/play-stream?p_id=${roomId}`;
 
-  const surl = `${process.env.AAP_URL || "http://localhost:3000"}`;
 
   if (loading) {
     return <p>Loading room details...</p>;

@@ -28,7 +28,9 @@ function VideoStream({ streamDetailsData }) {
   useEffect(() => {    
     if (!streamDetailsData?.stream_key) return;
     const video = videoRef.current;
-    const streamServerUrl = process.env.REACT_APP_STREAM_SERVER_URL || "http://localhost:8088";
+    console.log(process.env.APP_STREAM_URL);
+    
+    const streamServerUrl = process.env.APP_STREAM_URL || "http://localhost:8088";
     // const streamServerUrl = "http://128.199.16.212";
     const videoSrc = `${streamServerUrl}/hls/${streamDetailsData.stream_key}.m3u8`;
     console.log(videoSrc);
