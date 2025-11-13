@@ -472,8 +472,13 @@ function RoomDetails() {
     fetchRoomDetails(roomId);
   }, [roomId]);
 
+
+  console.log(process.env.REACT_AAP_URL);
+  
+
   const surl = `${process.env.REACT_AAP_URL || "http://localhost:3000"}`;
   const stream_url = `${surl}/play-stream?p_id=${roomId}`;
+
   
   // const stream_url = `http://localhost:3000/play-stream?p_id=${roomId}`;
 
