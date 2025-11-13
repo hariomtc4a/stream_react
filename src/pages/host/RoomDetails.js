@@ -473,10 +473,10 @@ function RoomDetails() {
   }, [roomId]);
 
 
-  console.log(process.env.REACT_AAP_URL);
+  console.log(process.env.REACT_APP_URL);
   
 
-  const surl = `${process.env.REACT_AAP_URL || "http://localhost:3000"}`;
+  const surl = `${process.env.REACT_APP_URL || "http://localhost:3000"}`;
   const stream_url = `${surl}/play-stream?p_id=${roomId}`;
 
   
