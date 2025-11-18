@@ -98,7 +98,21 @@ input::placeholder {
   background-color: #0a0c22;
   color: white;
 
+  .header-host-toggle{
+    min-width: 270px;
+    position: fixed;
+    z-index: 99;
+    background-color: #142332;
+    top: 50px;
+    right: 20px;
+    padding: 15px 10px 10px 10px;
+    .th-btn{
+      width: 100% !important;
+    }
+  }
+  
   .host-content {
+    width: 100%;
     padding: 10px;
   }
 
@@ -171,7 +185,7 @@ input::placeholder {
     justify-content: end;
   }
 
-  header .right i {
+  header .right .avatar i {
     font-size: 35px;
     padding-right: 10px;
   }
@@ -219,10 +233,21 @@ input::placeholder {
       background-color: rgb(255, 0, 0);
       animation: blink 1.5s ease-in-out infinite;
     }
-
   }
-  
-  .modal-content{
+
+  .host-login-page {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    .login-form {
+      width: 33%;
+      padding-top: 200px;
+    }
+  }
+
+  .modal-content {
     background-color: #142332 !important;
     color: white;
   }
@@ -239,27 +264,33 @@ input::placeholder {
     margin-bottom: 20px !important;
   }
 
+  .th-btn.btn-th-primary {
+    border: 1px solid #4095fb !important;
+    background-color: transparent;
+    color: #4095fb;
+  }
 
-  .th-btn.btn-th-primary  {
+  .th-btn.btn-th-success {
     border: 1px solid #148022 !important;
     background-color: transparent;
     color: #148022;
   }
 
-  .th-input-group{
+  .th-btn.btn-th-danger {
+    border: 1px solid #8a1d1d !important;
+    background-color: transparent;
+    color: #8a1d1d;
+  }
+
+  .th-input-group {
     display: inline;
     margin: 6px 4px 10px 4px !important;
   }
 
-  .th-input-group{
-    /* margin: 0px 0px 5px 0px !important; */
-  }
-
-  .th-form-control{
+  .th-form-control {
     margin: 0px 0px 10px 0px !important;
     outline: none;
   }
-
 }
 
 /* speaker conference */
@@ -497,17 +528,19 @@ input::placeholder {
     background: #000;
   }
 
-  p{
+  p {
     color: white;
   }
 }
 /* play stream page */
 
 @keyframes blink {
-  0%, 100%{
+  0%,
+  100% {
     opacity: 0;
   }
-  40%, 70%{
+  40%,
+  70% {
     opacity: 1;
   }
 }

@@ -4,51 +4,81 @@ import SpeakerJoin from "./pages/SpeakerJoin.js";
 import PlayStream from "./pages/PlayStream";
 import Rooms from "./pages/host/Room";
 import RoomDetails from "./pages/host/RoomDetails.js";
-import "./css/style.css";
+import LoginPage from "./pages/host/LoginPage.js";
+import useHostAuth from "./hooks/useHostAuth";
+import { Navigate } from "react-router-dom";
+
+function HostDashboardRoute({ children }) {
+  const { loading, authenticated } = useHostAuth();
+
+  if (loading) return <div>Checking authentication...</div>;
+
+  if (!authenticated) return <Navigate to="/host/login" replace />;
+
+  return children;
+}
+
+function HostLoginRoute({ children }) {
+  const { loading, authenticated } = useHostAuth();
+
+  if (loading) return <div>Checking authentication...</div>;
+
+  if (authenticated) return <Navigate to="/host/rooms" replace />;
+
+  return children;
+}
 
 const router = createBrowserRouter([
-  {
-    path: "/",
-    element: <HomePage />,
-  },
+  { path: "/", element: <HomePage /> },
+
   {
     path: "/speaker-join",
     element: <SpeakerJoin />,
-    loader: async ({ request }) => {
+    loader: ({ request }) => {
       const url = new URL(request.url);
-      const s_id = url.searchParams.get("s_id");
-      return {s_id};
+      return { s_id: url.searchParams.get("s_id") };
     },
-
   },
+
   {
     path: "/play-stream",
     element: <PlayStream />,
-    loader: async ({ request }) => {
+    loader: ({ request }) => {
       const url = new URL(request.url);
-      const p_id = url.searchParams.get("p_id");
-      return {p_id};
+      return { p_id: url.searchParams.get("p_id") };
     },
-
   },
 
   {
-    path: "/host-panel/rooms",
-    element: <Rooms />
-  },  
-  {
-    path: "/host-panel/room/:roomId",
-    element: <RoomDetails />,
+    path: "/host/login",
+    element: (
+      <HostLoginRoute>
+        <LoginPage />
+      </HostLoginRoute>
+    ),
   },
 
+  {
+    path: "/host/rooms",
+    element: (
+      <HostDashboardRoute>
+        <Rooms />
+      </HostDashboardRoute>
+    ),
+  },
+
+  {
+    path: "/host/room/:roomId",
+    element: (
+      <HostDashboardRoute>
+        <RoomDetails />
+      </HostDashboardRoute>
+    ),
+  },
 ]);
 
 function App() {
-  return (
-    <div>
-      <RouterProvider router={router} />
-    </div>
-  );
+  return <RouterProvider router={router} />;
 }
 
 export default App;

@@ -8,7 +8,7 @@ function AddRoomModal({ getRooms }) {
   const [room, setRoom] = useState({
     title: "",
     startTime: "",
-    endTime: ""
+    endTime: "",
   });
   const [formErrors, setFormErrors] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -24,7 +24,7 @@ function AddRoomModal({ getRooms }) {
     if (!room.endTime.trim()) errors.push("End time is required");
     const start = new Date(room.startTime);
     const end = new Date(room.endTime);
-    if ((room.startTime.trim() && room.endTime.trim()) && start >= end) {
+    if (room.startTime.trim() && room.endTime.trim() && start >= end) {
       errors.push("Start time must be earlier than end time");
     }
 
@@ -35,16 +35,20 @@ function AddRoomModal({ getRooms }) {
 
     setLoading(true);
     try {
-      const response = await fetch(`${process.env.REACT_APP_API_URL}/createRoom`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          title: room.title,
-          startTime: room.startTime,
-          endTime: room.endTime,
-          hostId: 1
-        }),
-      });
+      const response = await fetch(
+        `${process.env.REACT_APP_API_URL}/createRoom`,
+        {
+          method: "POST",
+          credentials: "include",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            title: room.title,
+            startTime: room.startTime,
+            endTime: room.endTime,
+            hostId: 1,
+          }),
+        }
+      );
 
       const data = await response.json();
 
@@ -62,7 +66,6 @@ function AddRoomModal({ getRooms }) {
         });
         setFormErrors([]);
         await getRooms(); // refresh room list
-
       }
     } catch (error) {
       console.error("Error fetching rooms:", error);
@@ -78,12 +81,20 @@ function AddRoomModal({ getRooms }) {
         <i className="bi bi-plus-lg"></i> Room
       </span>
 
-      <div className={`modal fade ${open ? "show d-block" : ""}`} tabIndex="-1" role="dialog">
+      <div
+        className={`modal fade ${open ? "show d-block" : ""}`}
+        tabIndex="-1"
+        role="dialog"
+      >
         <div className="modal-dialog" role="document">
           <div className="modal-content">
             <div className="modal-body">
               <div className="d-flex px-2 py-1 justify-content-end">
-                <button type="button" className="th-btn close" onClick={() => setOpen(false)}>
+                <button
+                  type="button"
+                  className="th-btn close"
+                  onClick={() => setOpen(false)}
+                >
                   <span>&times;</span>
                 </button>
               </div>
@@ -138,13 +149,17 @@ function AddRoomModal({ getRooms }) {
               <div className="d-flex px-2 py-1 justify-content-end gap-2">
                 <button
                   type="button"
-                  className="th-btn btn-th-primary"
+                  className="th-btn btn-th-success"
                   onClick={handleSubmit}
                   disabled={loading}
                 >
                   {loading ? "Saving..." : "Done"}
                 </button>
-                <button type="button" className="th-btn" onClick={() => setOpen(false)}>
+                <button
+                  type="button"
+                  className="th-btn"
+                  onClick={() => setOpen(false)}
+                >
                   Close
                 </button>
               </div>
@@ -156,10 +171,10 @@ function AddRoomModal({ getRooms }) {
   );
 }
 
-
 const fetchRooms = async () => {
   try {
     const response = await fetch(`${process.env.REACT_APP_API_URL}/getRooms`, {
+      credentials: "include",
       method: "POST",
       headers: { "Content-Type": "application/json" },
     });
@@ -189,9 +204,8 @@ function Rooms() {
     setSnack({ open: true, message, type });
   };
 
-
   const getRoomDetails = (roomId) => {
-    navigate(`/host-panel/room/${roomId}`);
+    navigate(`/host/room/${roomId}`);
   };
 
   const getRooms = async () => {
@@ -228,7 +242,6 @@ function Rooms() {
       <Header title={"Rooms"} user={"Hariom"} />
       <div className="host-content">
         <div className="host-room-page">
-
           <div className="d-flex justify-content-end p-3">
             <AddRoomModal getRooms={getRooms} />
           </div>
@@ -285,7 +298,13 @@ function Rooms() {
                       To <strong>{endDate}</strong>
                     </td>
                     <td>{createdDate}</td>
-                    <td>{roomInfo.status ? <span className="badge text-bg-success">Enabled</span> : <span className="badge text-bg-danger">Disabled</span> }</td>
+                    <td>
+                      {roomInfo.status ? (
+                        <span className="badge text-bg-success">Enabled</span>
+                      ) : (
+                        <span className="badge text-bg-danger">Disabled</span>
+                      )}
+                    </td>
                     <td>
                       <button
                         onClick={() => getRoomDetails(roomInfo.stream_key)}

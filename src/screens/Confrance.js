@@ -15,7 +15,6 @@ import {
   selectHMSMessages,
 } from "@100mslive/hms-video-store";
 
-
 const hmsManager = new HMSReactiveStore();
 hmsManager.triggerOnSubscribe();
 const hmsStore = hmsManager.getStore();
@@ -23,9 +22,11 @@ const hmsActions = hmsManager.getActions();
 
 async function getSpeakerDetail(s_id) {
   try {
-    const response = await fetch(`${process.env.REACT_APP_API_URL}/getSpeaker`,
+    const response = await fetch(
+      `${process.env.REACT_APP_API_URL}/getSpeaker`,
       {
         method: "POST",
+        credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ sId: s_id }),
       }

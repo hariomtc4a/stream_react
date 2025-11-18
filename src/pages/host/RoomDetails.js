@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import Header from "../../components/HostComponents/Header";
 
+
 function RtmpToggleSwitch({ roomInfo }) {
   const roomId = roomInfo.room_id;
   const streamKey = roomInfo.stream_key;
@@ -24,6 +25,7 @@ function RtmpToggleSwitch({ roomInfo }) {
     try {
       await fetch(`${process.env.REACT_APP_API_URL}/rtmpStream`, {
         method: "POST",
+        credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           status: newStatus,
@@ -91,6 +93,7 @@ function StatusToggleSwitch({ roomInfo }) {
     try {
       await fetch(`${process.env.REACT_APP_API_URL}/changeRoomStatus`, {
         method: "POST",
+        credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           status: newStatus,
@@ -109,7 +112,13 @@ function StatusToggleSwitch({ roomInfo }) {
     <div className="d-flex align-items-center">
       <span>Status: &nbsp;</span>
       <div className="form-check form-switch">
-        <input className="form-check-input" type="checkbox" checked={isOn} role="switch" onChange={handleToggle}/>
+        <input
+          className="form-check-input"
+          type="checkbox"
+          checked={isOn}
+          role="switch"
+          onChange={handleToggle}
+        />
       </div>
       <div className="ps-2">
         {isOn ? (
@@ -146,6 +155,7 @@ function AddSpeakerModal({ roomInfo, fetchRoomDetails }) {
           {
             method: "POST",
             headers: { "Content-Type": "application/json" },
+            credentials: "include",
             body: JSON.stringify({
               streamKey: roomInfo.stream_key,
               name: speaker.name,
@@ -239,7 +249,7 @@ function AddSpeakerModal({ roomInfo, fetchRoomDetails }) {
               <div className="d-flex px-2 py-1 justify-content-end gap-2">
                 <button
                   type="button"
-                  className="th-btn btn-th-primary"
+                  className="th-btn btn-th-success"
                   onClick={handleSubmit}
                 >
                   Done
@@ -299,6 +309,7 @@ function EditRoomModal({ roomInfo, fetchRoomDetails }) {
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
+          credentials: "include",
           body: JSON.stringify({
             id: room.id,
             title: room.title,
@@ -410,7 +421,7 @@ function EditRoomModal({ roomInfo, fetchRoomDetails }) {
               <div className="d-flex px-2 py-1 justify-content-end gap-2">
                 <button
                   type="button"
-                  className="th-btn btn-th-primary"
+                  className="th-btn btn-th-success"
                   onClick={handleSubmit}
                   disabled={loading}
                 >
@@ -444,6 +455,7 @@ function RoomDetails() {
         `${process.env.REACT_APP_API_URL}/getRooms`,
         {
           method: "POST",
+          credentials: "include",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ streamKey: roomId }),
         }
@@ -472,16 +484,12 @@ function RoomDetails() {
     fetchRoomDetails(roomId);
   }, [roomId]);
 
-
   console.log(process.env.REACT_APP_URL);
-  
 
   const surl = `${process.env.REACT_APP_URL || "http://localhost:3000"}`;
   const stream_url = `${surl}/play-stream?p_id=${roomId}`;
 
-  
   // const stream_url = `http://localhost:3000/play-stream?p_id=${roomId}`;
-
 
   if (loading) {
     return <p>Loading room details...</p>;
@@ -610,8 +618,6 @@ function RoomDetails() {
           </div>
         </div>
       </div>
-
-      
     </div>
   );
 }

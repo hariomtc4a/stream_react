@@ -26,6 +26,7 @@ async function getSpeakerDetail(s_id) {
       `${process.env.REACT_APP_API_URL}/getSpeaker`,
       {
         method: "POST",
+        credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ sId: s_id }),
       }

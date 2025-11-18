@@ -7,6 +7,7 @@ async function getStreamDetail(p_id) {
   try {
     const response = await fetch(`${process.env.REACT_APP_API_URL}/getRooms`, {
       method: "POST",
+      credentials: "include",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ streamKey: p_id }),
     });
@@ -25,16 +26,17 @@ async function getStreamDetail(p_id) {
 function VideoStream({ streamDetailsData }) {
   const videoRef = useRef(null);
 
-  useEffect(() => {    
+  useEffect(() => {
     if (!streamDetailsData?.stream_key) return;
     const video = videoRef.current;
     console.log(process.env.REACT_APP_STREAM_URL);
-    
-    const streamServerUrl = process.env.REACT_APP_STREAM_URL || "http://localhost:8088";
+
+    const streamServerUrl =
+      process.env.REACT_APP_STREAM_URL || "http://localhost:8088";
     // const streamServerUrl = "http://128.199.16.212";
     const videoSrc = `${streamServerUrl}/hls/${streamDetailsData.stream_key}.m3u8`;
     console.log(videoSrc);
-    
+
     if (Hls.isSupported()) {
       const hls = new Hls();
       hls.loadSource(videoSrc);
@@ -51,9 +53,7 @@ function VideoStream({ streamDetailsData }) {
     }
   }, [streamDetailsData]);
 
-  return (
-    <video ref={videoRef} controls autoPlay muted className="video-ele"/>
-  );
+  return <video ref={videoRef} controls autoPlay muted className="video-ele" />;
 }
 
 function PlayStream() {
@@ -85,15 +85,12 @@ function PlayStream() {
   const startTime = new Date(streamData.start_time);
 
   console.log(streamData);
-  
 
   // Only play if stream has started
-  if(streamData.status == 0){
+  if (streamData.status == 0) {
     return (
       <div className="play-stream-page">
-        <p>
-          Stream not available or disabled
-        </p>
+        <p>Stream not available or disabled</p>
       </div>
     );
   } else if (now <= startTime) {
@@ -108,7 +105,7 @@ function PlayStream() {
   } else {
     return (
       <div className="play-stream-page">
-        <VideoStream streamDetailsData={streamData}/>
+        <VideoStream streamDetailsData={streamData} />
       </div>
     );
   }
